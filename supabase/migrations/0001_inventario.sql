@@ -98,7 +98,7 @@ create trigger inv_products_touch before update on inv_products for each row exe
 -- Registrar una venta completa de una sola vez: cliente, renglones y descuento de existencias.
 -- p = {sale_date, channel, payment, notes, customer_name, customer_phone, items: [{product_id, qty, unit_price}]}
 create or replace function inv_register_sale(p jsonb, author text) returns uuid
-language plpgsql security invoker as $$
+language plpgsql security invoker set search_path = public as $$
 declare
   v_customer uuid;
   v_sale uuid;
@@ -134,7 +134,7 @@ end $$;
 
 -- Borrar una venta mal anotada devuelve los productos al inventario.
 create or replace function inv_delete_sale(p_sale uuid, author text) returns void
-language plpgsql security invoker as $$
+language plpgsql security invoker set search_path = public as $$
 declare r record;
 begin
   for r in select product_id, qty from inv_sale_items where sale_id = p_sale loop
@@ -146,7 +146,7 @@ end $$;
 
 -- Sumar mercancía recibida o fijar el conteo físico. items = [{product_id, qty}]
 create or replace function inv_adjust_stock(items jsonb, mode text, ref uuid, author text) returns void
-language plpgsql security invoker as $$
+language plpgsql security invoker set search_path = public as $$
 declare v_item jsonb; v_old integer; v_qty integer;
 begin
   if mode not in ('entrada', 'conteo') then raise exception 'Modo no válido'; end if;
